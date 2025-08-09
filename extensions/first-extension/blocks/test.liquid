@@ -37,13 +37,11 @@
         <p class="upload-note">PNG, JPG, or JPEG up to 10MB.</p>
       </div>
 
-      <!-- Success message -->
-      <p id="upload-message" class="upload-message" style="display:none; color:green; font-weight:bold;">
-        ✅ Image uploaded successfully!
-      </p>
+      <!-- Success / Error message -->
+      <p id="upload-message" class="upload-message" style="display:none; font-weight:bold; margin-top: 10px;"></p>
 
       <!-- Analyze -->
-      <button class="analyze-button">Analyze Face</button>
+      <button class="analyze-button" disabled id="analyze-btn">Analyze Face</button>
     </div>
   </div>
 </div>
@@ -53,16 +51,73 @@
     const input = document.getElementById('picture');
     const preview = document.getElementById('preview-image');
     const message = document.getElementById('upload-message');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    let uploadedFile = null;
 
     input.addEventListener('change', function () {
       const file = this.files[0];
       if (file) {
         preview.src = URL.createObjectURL(file);
-        message.style.display = 'block'; // Show the message
+        message.style.display = 'none';
+        analyzeBtn.disabled = false;
+        uploadedFile = file;
       }
+    });
+
+    analyzeBtn.addEventListener('click', function () {
+      if (!uploadedFile) {
+        message.textContent = 'Please upload an image first.';
+        message.style.color = 'red';
+        message.style.display = 'block';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('photo', uploadedFile);
+
+      message.textContent = 'Analyzing image...';
+      message.style.color = 'black';
+      message.style.display = 'block';
+      analyzeBtn.disabled = true;
+
+      fetch('http://localhost:8000/upload/', {  // Adjust URL as needed
+        method: 'POST',
+        body: formData,
+        credentials: 'include', // keep if your Django uses sessions/cookies
+      })
+      .then(response => response.json())
+      .then(data => {
+        analyzeBtn.disabled = false;
+        if (data.error) {
+          message.textContent = 'Error: ' + data.error;
+          message.style.color = 'red';
+        } else {
+          // Show all data returned:
+          message.innerHTML = `
+            ✅ Image analyzed successfully!<br>
+            <strong>Skin Type:</strong> ${data.skin_type}<br>
+            <strong>Left Eye Color:</strong> ${data.left_eye_color}<br>
+            <strong>Right Eye Color:</strong> ${data.right_eye_color}<br>
+            <strong>Acne Level:</strong> ${data.acne_pred} (Confidence: ${(data.acne_confidence * 100).toFixed(1)}%)
+          `;
+          message.style.color = 'green';
+
+          // Optionally, update preview image with cropped face
+          if(data.cropped_face){
+            preview.src = data.cropped_face;
+          }
+        }
+      })
+      .catch(err => {
+        analyzeBtn.disabled = false;
+        message.textContent = 'Upload failed. See console for details.';
+        message.style.color = 'red';
+        console.error(err);
+      });
     });
   });
 </script>
+
 
 {% schema %}
 {
