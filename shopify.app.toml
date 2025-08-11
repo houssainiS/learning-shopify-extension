@@ -3,7 +3,7 @@
 client_id = "d7d31726e1d03bf022e016021f595095"
 name = "first-extension"
 handle = "first-extension-19"
-application_url = "https://indicates-lookup-wagner-italia.trycloudflare.com"
+application_url = "https://heavy-powerseller-implementing-rely.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://indicates-lookup-wagner-italia.trycloudflare.com/auth/callback", "https://indicates-lookup-wagner-italia.trycloudflare.com/auth/shopify/callback", "https://indicates-lookup-wagner-italia.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://heavy-powerseller-implementing-rely.trycloudflare.com/auth/callback", "https://heavy-powerseller-implementing-rely.trycloudflare.com/auth/shopify/callback", "https://heavy-powerseller-implementing-rely.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
