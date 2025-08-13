@@ -42,6 +42,50 @@
 
       <!-- Analyze -->
       <button class="analyze-button" disabled id="analyze-btn">Analyze Face</button>
+
+      <!-- Added analysis results section -->
+      <!-- Analysis Images Section -->
+      <div id="analysis-images" style="display:none;">
+        <div class="analysis-section">
+          <!-- YOLO Detection Image -->
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
+                </svg>
+              </div>
+              <div class="analysis-title">
+                <h3>Detected Issues</h3>
+                <p>Areas of concern identified on your face</p>
+              </div>
+            </div>
+            <div class="detection-container">
+              <img id="yolo-annotated-image" src="{{ '265x265.png' | asset_url }}" alt="YOLO Detection Results" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
+            </div>
+          </div>
+
+          <!-- Segmentation Image -->
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                </svg>
+              </div>
+              <div class="analysis-title">
+                <h3>Skin Segmentation</h3>
+                <p>Different skin condition areas highlighted</p>
+              </div>
+            </div>
+            <div class="segmentation-container">
+              <img id="segmentation-overlay-image" src="{{ '265x265.png' | asset_url }}" alt="Segmentation Analysis" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -52,6 +96,9 @@
     const preview = document.getElementById('preview-image');
     const message = document.getElementById('upload-message');
     const analyzeBtn = document.getElementById('analyze-btn');
+    const analysisImages = document.getElementById('analysis-images');
+    const yoloImage = document.getElementById('yolo-annotated-image');
+    const segmentationImage = document.getElementById('segmentation-overlay-image');
     let uploadedFile = null;
 
     input.addEventListener('change', function () {
@@ -61,6 +108,7 @@
         message.style.display = 'none';
         analyzeBtn.disabled = false;
         uploadedFile = file;
+        analysisImages.style.display = 'none';
       }
     });
 
@@ -80,44 +128,121 @@
       message.style.display = 'block';
       analyzeBtn.disabled = true;
 
-      fetch('http://localhost:8000/upload/', {  // Adjust URL as needed
+      const apiEndpoint = '{{ block.settings.api_endpoint | default: "http://localhost:8000/upload/" }}';
+      
+      fetch(apiEndpoint, {
         method: 'POST',
         body: formData,
-        credentials: 'include', // keep if your Django uses sessions/cookies
+        credentials: 'include',
       })
-      .then(response => response.json())
+      .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          return response.text().then(text => {
+            console.error('Non-JSON response received:', text);
+            throw new Error(`Server returned ${contentType || 'unknown content type'} instead of JSON. Response: ${text.substring(0, 200)}...`);
+          });
+        }
+        
+        return response.json();
+      })
       .then(data => {
         analyzeBtn.disabled = false;
         if (data.error) {
           message.textContent = 'Error: ' + data.error;
           message.style.color = 'red';
         } else {
-          // Show all data returned:
-          message.innerHTML = `
-            ✅ Image analyzed successfully!<br>
-            <strong>Skin Type:</strong> ${data.skin_type}<br>
-            <strong>Left Eye Color:</strong> ${data.left_eye_color}<br>
-            <strong>Right Eye Color:</strong> ${data.right_eye_color}<br>
-            <strong>Acne Level:</strong> ${data.acne_pred} (Confidence: ${(data.acne_confidence * 100).toFixed(1)}%)
-          `;
+          let resultHTML = '✅ Image analyzed successfully!<br>';
+          
+          if (data.skin_type) {
+            resultHTML += `<strong>Skin Type:</strong> ${data.skin_type}<br>`;
+          }
+          
+          if (data.left_eye_color) {
+            resultHTML += `<strong>Left Eye Color:</strong> ${data.left_eye_color}<br>`;
+          }
+          
+          if (data.right_eye_color) {
+            resultHTML += `<strong>Right Eye Color:</strong> ${data.right_eye_color}<br>`;
+          }
+          
+          if (data.acne_pred && data.acne_confidence) {
+            resultHTML += `<strong>Acne Level:</strong> ${data.acne_pred} (Confidence: ${(data.acne_confidence * 100).toFixed(1)}%)<br>`;
+          }
+          
+          if (data.type_probs && data.type_probs.length === 3) {
+            resultHTML += `<strong>Skin Type Probabilities:</strong><br>`;
+            resultHTML += `• Dry: ${(data.type_probs[0] * 100).toFixed(1)}%<br>`;
+            resultHTML += `• Normal: ${(data.type_probs[1] * 100).toFixed(1)}%<br>`;
+            resultHTML += `• Oily: ${(data.type_probs[2] * 100).toFixed(1)}%<br>`;
+          }
+          
+          if (data.yolo_boxes && data.yolo_boxes.length > 0) {
+            resultHTML += `<strong>Detected Issues:</strong><br>`;
+            
+            // Group detections by type and count them
+            const detectionCounts = {};
+            data.yolo_boxes.forEach(box => {
+              const issueType = box.label || box.class || 'Unknown';
+              if (detectionCounts[issueType]) {
+                detectionCounts[issueType]++;
+              } else {
+                detectionCounts[issueType] = 1;
+              }
+            });
+            
+            // Display each type with count and confidence
+            Object.entries(detectionCounts).forEach(([issueType, count]) => {
+              // Find the highest confidence for this issue type
+              const maxConfidence = Math.max(...data.yolo_boxes
+                .filter(box => (box.label || box.class) === issueType)
+                .map(box => box.confidence || 0));
+              
+              resultHTML += `• ${issueType}: ${count} area${count > 1 ? 's' : ''} (${(maxConfidence * 100).toFixed(1)}% confidence)<br>`;
+            });
+          }
+          
+          message.innerHTML = resultHTML;
           message.style.color = 'green';
 
-          // Optionally, update preview image with cropped face
           if(data.cropped_face){
             preview.src = data.cropped_face;
+          }
+
+          if(data.yolo_annotated) {
+            yoloImage.src = data.yolo_annotated;
+            yoloImage.style.display = 'block';
+          }
+
+          if(data.segmentation_overlay) {
+            segmentationImage.src = data.segmentation_overlay;
+            segmentationImage.style.display = 'block';
+          }
+
+          if(data.yolo_annotated || data.segmentation_overlay) {
+            analysisImages.style.display = 'block';
           }
         }
       })
       .catch(err => {
         analyzeBtn.disabled = false;
-        message.textContent = 'Upload failed. See console for details.';
+        console.error('Full error details:', err);
+        
+        if (err.message.includes('Failed to fetch')) {
+          message.textContent = 'Network error: Cannot connect to API server. Make sure Django is running at ' + apiEndpoint;
+        } else if (err.message.includes('JSON')) {
+          message.textContent = 'API Error: Server returned HTML instead of JSON. Check your Django server and endpoint URL.';
+        } else {
+          message.textContent = 'Upload failed: ' + err.message;
+        }
         message.style.color = 'red';
-        console.error(err);
       });
     });
   });
 </script>
-
 
 {% schema %}
 {
@@ -135,6 +260,13 @@
       "id": "description",
       "label": "Description",
       "default": "Upload an image to analyze facial features and expressions."
+    },
+    {
+      "type": "text",
+      "id": "api_endpoint",
+      "label": "API Endpoint URL",
+      "default": "http://localhost:8000/upload/",
+      "info": "Full URL to your Django API endpoint (e.g., http://localhost:8000/upload/ or https://yourdomain.com/upload/)"
     }
   ]
 }
