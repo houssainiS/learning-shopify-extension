@@ -3,7 +3,7 @@
 client_id = "d7d31726e1d03bf022e016021f595095"
 name = "first-extension"
 handle = "first-extension-19"
-application_url = "https://space-continued-optimal-passed.trycloudflare.com"
+application_url = "https://symbols-focused-sustained-checklist.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://space-continued-optimal-passed.trycloudflare.com/auth/callback", "https://space-continued-optimal-passed.trycloudflare.com/auth/shopify/callback", "https://space-continued-optimal-passed.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://symbols-focused-sustained-checklist.trycloudflare.com/auth/callback", "https://symbols-focused-sustained-checklist.trycloudflare.com/auth/shopify/callback", "https://symbols-focused-sustained-checklist.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

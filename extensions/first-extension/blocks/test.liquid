@@ -86,6 +86,51 @@
           </div>
         </div>
       </div>
+
+      <!-- Product Recommendations Section -->
+      <div id="product-recommendations" style="display:none;">
+        <div class="recommendations-header">
+          <h3>Recommended Products</h3>
+          <p>Based on your skin analysis results</p>
+        </div>
+        
+        <div class="recommendations-filters">
+          <span class="filter-label">Filtering by:</span>
+          <div id="active-filters" class="active-filters"></div>
+        </div>
+        
+        <div id="recommended-products" class="product-grid">
+          {% paginate collections.all.products by 20 %}
+            {% for product in collections.all.products %}
+              <div class="product-item" 
+                   data-tags="{{ product.tags | join: ',' | downcase }}"
+                   data-title="{{ product.title | downcase }}"
+                   style="display: none;">
+                <div class="product-image">
+                  <img src="{{ product.featured_image | img_url: '200x200' }}" 
+                       alt="{{ product.title }}" 
+                       width="200" 
+                       height="200">
+                </div>
+                <div class="product-info">
+                  <h4 class="product-title">{{ product.title }}</h4>
+                  <p class="product-price">{{ product.price | money }}</p>
+                  <div class="product-tags">
+                    {% for tag in product.tags limit: 3 %}
+                      <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                  <a href="{{ product.url }}" class="product-link">View Product</a>
+                </div>
+              </div>
+            {% endfor %}
+          {% endpaginate %}
+        </div>
+        
+        <div id="no-products" class="no-products" style="display: none;">
+          <p>No products found matching your skin analysis. Please check back later for new recommendations.</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -99,6 +144,10 @@
     const analysisImages = document.getElementById('analysis-images');
     const yoloImage = document.getElementById('yolo-annotated-image');
     const segmentationImage = document.getElementById('segmentation-overlay-image');
+    const productRecommendations = document.getElementById('product-recommendations');
+    const activeFiltersDiv = document.getElementById('active-filters');
+    const productItems = document.querySelectorAll('.product-item');
+    const noProductsDiv = document.getElementById('no-products');
     let uploadedFile = null;
 
     input.addEventListener('change', function () {
@@ -109,6 +158,7 @@
         analyzeBtn.disabled = false;
         uploadedFile = file;
         analysisImages.style.display = 'none';
+        productRecommendations.style.display = 'none';
       }
     });
 
@@ -225,6 +275,8 @@
           if(data.yolo_annotated || data.segmentation_overlay) {
             analysisImages.style.display = 'block';
           }
+
+          showProductRecommendations(data);
         }
       })
       .catch(err => {
@@ -241,6 +293,60 @@
         message.style.color = 'red';
       });
     });
+
+    function showProductRecommendations(analysisData) {
+      const filters = [];
+      
+      // Add skin type filter
+      if (analysisData.skin_type) {
+        filters.push(analysisData.skin_type.toLowerCase());
+      }
+      
+      // Add detected issue filters
+      if (analysisData.yolo_boxes && analysisData.yolo_boxes.length > 0) {
+        const detectedIssues = [...new Set(analysisData.yolo_boxes.map(box => 
+          (box.label || box.class || '').toLowerCase()
+        ))];
+        filters.push(...detectedIssues);
+      }
+      
+      // Add acne filter if detected
+      if (analysisData.acne_pred && parseInt(analysisData.acne_pred) > 0) {
+        filters.push('acne');
+      }
+      
+      // Display active filters
+      activeFiltersDiv.innerHTML = filters.map(filter => 
+        `<span class="filter-tag">${filter}</span>`
+      ).join('');
+      
+      // Filter and show relevant products
+      let visibleCount = 0;
+      productItems.forEach(item => {
+        const productTags = item.dataset.tags.toLowerCase();
+        const productTitle = item.dataset.title.toLowerCase();
+        const isRelevant = filters.some(filter => 
+          productTags.includes(filter) || productTitle.includes(filter)
+        );
+        
+        if (isRelevant) {
+          item.style.display = 'block';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Show no products message if no matches found
+      if (visibleCount === 0) {
+        noProductsDiv.style.display = 'block';
+      } else {
+        noProductsDiv.style.display = 'none';
+      }
+      
+      // Show the recommendations section
+      productRecommendations.style.display = 'block';
+    }
   });
 </script>
 
