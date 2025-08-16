@@ -23,6 +23,12 @@
         </div>
       </div>
 
+      <!-- Added webcam section -->
+      <div id="webcam-section" class="webcam-section" style="display:none;">
+        <video id="webcam-video" width="256" height="256" autoplay playsinline></video>
+        <canvas id="webcam-canvas" width="256" height="256" style="display:none;"></canvas>
+      </div>
+
       <!-- Upload -->
       <div class="upload-section">
         <input id="picture" type="file" class="hidden-file" accept="image/png, image/jpeg" />
@@ -33,6 +39,24 @@
             <line x1="12" x2="12" y1="3" y2="15"/>
           </svg>
           Upload Image
+        </button>
+        <!-- Added webcam buttons -->
+        <button type="button" class="webcam-button" id="webcam-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Use Camera
+        </button>
+        <button type="button" class="capture-button" id="capture-btn" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          Capture Photo
+        </button>
+        <button type="button" class="stop-camera-button" id="stop-camera-btn" style="display:none;">
+          Stop Camera
         </button>
         <p class="upload-note">PNG, JPG, or JPEG up to 10MB.</p>
       </div>
@@ -62,7 +86,7 @@
               </div>
             </div>
             <div class="detection-container">
-              <img id="yolo-annotated-image" src="{{ '265x265.png' | asset_url }}" alt="YOLO Detection Results" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
+              <img id="yolo-annotated-image" src="/placeholder.svg" alt="YOLO Detection Results" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
             </div>
           </div>
 
@@ -81,7 +105,7 @@
               </div>
             </div>
             <div class="segmentation-container">
-              <img id="segmentation-overlay-image" src="{{ '265x265.png' | asset_url }}" alt="Segmentation Analysis" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
+              <img id="segmentation-overlay-image" src="/placeholder.svg" alt="Segmentation Analysis" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
             </div>
           </div>
         </div>
@@ -148,6 +172,14 @@
     const activeFiltersDiv = document.getElementById('active-filters');
     const productItems = document.querySelectorAll('.product-item');
     const noProductsDiv = document.getElementById('no-products');
+    
+    const webcamBtn = document.getElementById('webcam-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const stopCameraBtn = document.getElementById('stop-camera-btn');
+    const webcamSection = document.getElementById('webcam-section');
+    const webcamVideo = document.getElementById('webcam-video');
+    const webcamCanvas = document.getElementById('webcam-canvas');
+    let webcamStream = null;
     let uploadedFile = null;
 
     input.addEventListener('change', function () {
@@ -159,8 +191,63 @@
         uploadedFile = file;
         analysisImages.style.display = 'none';
         productRecommendations.style.display = 'none';
+        hideWebcam();
       }
     });
+
+    webcamBtn.addEventListener('click', function() {
+      startWebcam();
+    });
+
+    captureBtn.addEventListener('click', function() {
+      capturePhoto();
+    });
+
+    stopCameraBtn.addEventListener('click', function() {
+      hideWebcam();
+    });
+
+    function startWebcam() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          webcamStream = stream;
+          webcamVideo.srcObject = stream;
+          webcamSection.style.display = 'block';
+          captureBtn.style.display = 'inline-flex';
+          stopCameraBtn.style.display = 'inline-flex';
+          webcamBtn.style.display = 'none';
+        })
+        .catch(function(err) {
+          message.textContent = 'Error accessing camera: ' + err.message;
+          message.style.color = 'red';
+          message.style.display = 'block';
+        });
+    }
+
+    function capturePhoto() {
+      const context = webcamCanvas.getContext('2d');
+      context.drawImage(webcamVideo, 0, 0, 256, 256);
+      
+      webcamCanvas.toBlob(function(blob) {
+        uploadedFile = new File([blob], 'webcam-photo.jpg', { type: 'image/jpeg' });
+        preview.src = URL.createObjectURL(blob);
+        analyzeBtn.disabled = false;
+        analysisImages.style.display = 'none';
+        productRecommendations.style.display = 'none';
+        hideWebcam();
+      }, 'image/jpeg', 0.8);
+    }
+
+    function hideWebcam() {
+      if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        webcamStream = null;
+      }
+      webcamSection.style.display = 'none';
+      captureBtn.style.display = 'none';
+      stopCameraBtn.style.display = 'none';
+      webcamBtn.style.display = 'inline-flex';
+    }
 
     analyzeBtn.addEventListener('click', function () {
       if (!uploadedFile) {
@@ -302,12 +389,56 @@
         filters.push(analysisData.skin_type.toLowerCase());
       }
       
-      // Add detected issue filters
+      // Add detected issue filters from YOLO
       if (analysisData.yolo_boxes && analysisData.yolo_boxes.length > 0) {
         const detectedIssues = [...new Set(analysisData.yolo_boxes.map(box => 
           (box.label || box.class || '').toLowerCase()
         ))];
         filters.push(...detectedIssues);
+      }
+      
+      if (analysisData.segmentation_results && Array.isArray(analysisData.segmentation_results)) {
+        const segmentationIssues = analysisData.segmentation_results
+          .map(result => {
+            // Handle different possible structures of segmentation results
+            if (typeof result === 'string') {
+              return result.toLowerCase();
+            } else if (result && typeof result === 'object') {
+              // If it's an object, try to extract relevant fields
+              return (result.class || result.label || result.name || '').toString().toLowerCase();
+            }
+            return '';
+          })
+          .filter(issue => issue.length > 0); // Remove empty strings
+        filters.push(...segmentationIssues);
+      }
+      
+      if (analysisData.skin_conditions && Array.isArray(analysisData.skin_conditions)) {
+        const conditions = analysisData.skin_conditions
+          .map(condition => {
+            if (typeof condition === 'string') {
+              return condition.toLowerCase();
+            } else if (condition && typeof condition === 'object') {
+              return (condition.class || condition.label || condition.name || '').toString().toLowerCase();
+            }
+            return '';
+          })
+          .filter(condition => condition.length > 0);
+        filters.push(...conditions);
+      }
+      
+      if (analysisData.segmentation_classes && Array.isArray(analysisData.segmentation_classes)) {
+        const segClasses = analysisData.segmentation_classes
+          .map(cls => {
+            if (typeof cls === 'string') {
+              return cls.toLowerCase();
+            } else if (cls && typeof cls === 'object') {
+              return (cls.class || cls.label || cls.name || '').toString().toLowerCase();
+            }
+            return '';
+          })
+          .filter(cls => cls.length > 0);
+        filters.push(...segClasses);
       }
       
       // Add acne filter if detected
