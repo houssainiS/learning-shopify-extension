@@ -446,8 +446,10 @@
         filters.push('acne');
       }
       
+      const uniqueFilters = [...new Set(filters)];
+      
       // Display active filters
-      activeFiltersDiv.innerHTML = filters.map(filter => 
+      activeFiltersDiv.innerHTML = uniqueFilters.map(filter => 
         `<span class="filter-tag">${filter}</span>`
       ).join('');
       
@@ -456,7 +458,7 @@
       productItems.forEach(item => {
         const productTags = item.dataset.tags.toLowerCase();
         const productTitle = item.dataset.title.toLowerCase();
-        const isRelevant = filters.some(filter => 
+        const isRelevant = uniqueFilters.some(filter => 
           productTags.includes(filter) || productTitle.includes(filter)
         );
         
