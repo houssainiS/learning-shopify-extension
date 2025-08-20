@@ -42,7 +42,7 @@
         <input id="picture" type="file" class="hidden-file" accept="image/png, image/jpeg" />
         <button type="button" class="upload-button" onclick="document.getElementById('picture').click()">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-upload">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <polyline points="17 8 12 3 7 8"/>
             <line x1="12" x2="12" y1="3" y2="15"/>
           </svg>
@@ -78,22 +78,6 @@
           Analyze Face
         </button>
         <p class="upload-note">PNG, JPG, or JPEG up to 10MB</p>
-      </div>
-
-      <!-- Added loading section -->
-      <div id="loading-section" class="loading-section" style="display:none; opacity:0; visibility:hidden;">
-        <div class="loading-container">
-          <div class="loading-animation">
-            <div class="loading-circle"></div>
-            <div class="loading-circle"></div>
-            <div class="loading-circle"></div>
-          </div>
-          <h3>Analyzing Your Face</h3>
-          <p>Please wait while we process your image...</p>
-          <div class="loading-progress">
-            <div class="progress-bar"></div>
-          </div>
-        </div>
       </div>
 
       <!-- Enhanced results section -->
@@ -346,7 +330,6 @@
     const preview = document.getElementById('preview-image');
     const previewPlaceholder = document.getElementById('preview-placeholder');
     const analyzeBtn = document.getElementById('analyze-btn');
-    const loadingSection = document.getElementById('loading-section');
     const resultsSection = document.getElementById('results-section');
     const analysisImages = document.getElementById('analysis-images');
     const yoloImage = document.getElementById('yolo-annotated-image');
@@ -434,8 +417,6 @@
     }
 
     function hideResults() {
-      loadingSection.style.display = 'none';
-      loadingSection.style.opacity = '0';
       resultsSection.style.display = 'none';
       analysisImages.style.display = 'none';
       productRecommendations.style.display = 'none';
@@ -450,30 +431,11 @@
       const formData = new FormData();
       formData.append('photo', uploadedFile);
 
-      loadingSection.style.display = 'block';
-      loadingSection.style.opacity = '1';
-      loadingSection.style.visibility = 'visible';
-      
-      // Trigger progress bar animation
-      const progressBar = loadingSection.querySelector('.progress-bar');
-      if (progressBar) {
-        progressBar.style.animation = 'none';
-        progressBar.offsetHeight; // Force reflow
-        progressBar.style.animation = 'progressFill 3s ease-in-out forwards';
-      }
-      
       hideResults();
       analyzeBtn.disabled = true;
       analyzeBtn.style.opacity = '0.6';
       analyzeBtn.style.cursor = 'not-allowed';
       
-      // Force reflow to ensure loading section is visible
-      loadingSection.offsetHeight;
-      
-      // Add minimum loading duration for better UX
-      const startTime = Date.now();
-      const minLoadingDuration = 2000; // 2 seconds minimum
-
       const apiEndpoint = '{{ block.settings.api_endpoint | default: "http://localhost:8000/upload/" }}';
       
       fetch(apiEndpoint, {
@@ -491,35 +453,21 @@
         return response.json();
       })
       .then(data => {
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, minLoadingDuration - elapsedTime);
+        analyzeBtn.disabled = false;
+        analyzeBtn.style.opacity = '1';
+        analyzeBtn.style.cursor = 'pointer';
         
-        setTimeout(() => {
-          loadingSection.style.display = 'none';
-          loadingSection.style.opacity = '0';
-          analyzeBtn.disabled = false;
-          analyzeBtn.style.opacity = '1';
-          analyzeBtn.style.cursor = 'pointer';
-          
-          if (data.error) {
-            console.error('API Error:', data.error);
-          } else {
-            displayResults(data);
-          }
-        }, remainingTime);
+        if (data.error) {
+          console.error('API Error:', data.error);
+        } else {
+          displayResults(data);
+        }
       })
       .catch(err => {
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, minLoadingDuration - elapsedTime);
-        
-        setTimeout(() => {
-          loadingSection.style.display = 'none';
-          loadingSection.style.opacity = '0';
-          analyzeBtn.disabled = false;
-          analyzeBtn.style.opacity = '1';
-          analyzeBtn.style.cursor = 'pointer';
-          console.error('Analysis failed:', err);
-        }, remainingTime);
+        analyzeBtn.disabled = false;
+        analyzeBtn.style.opacity = '1';
+        analyzeBtn.style.cursor = 'pointer';
+        console.error('Analysis failed:', err);
       });
     });
 
