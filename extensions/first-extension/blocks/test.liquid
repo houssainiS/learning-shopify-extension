@@ -10,17 +10,25 @@
     <div class="face-analysis-body">
       <!-- Image preview -->
       <div class="face-analysis-preview">
+        <!-- Replaced placeholder image with face SVG -->
+        <div class="preview-placeholder" id="preview-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="face-icon">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="8" cy="10" r="1"/>
+            <circle cx="16" cy="10" r="1"/>
+            <path d="M8 16s1.5 2 4 2 4-2 4-2"/>
+          </svg>
+          <p>Upload or capture an image</p>
+        </div>
         <img 
           id="preview-image"
-          src="{{ '265x265.png' | asset_url }}" 
+          src="/placeholder.svg" 
           alt="Uploaded Image Preview" 
           width="256"
           height="256" 
           class="preview-image"
+          style="display: none;"
         />
-        <div class="preview-overlay">
-          <p>Image Preview</p>
-        </div>
       </div>
 
       <!-- Added webcam section -->
@@ -33,7 +41,7 @@
       <div class="upload-section">
         <input id="picture" type="file" class="hidden-file" accept="image/png, image/jpeg" />
         <button type="button" class="upload-button" onclick="document.getElementById('picture').click()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-upload">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-upload">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/>
             <line x1="12" x2="12" y1="3" y2="15"/>
@@ -42,80 +50,246 @@
         </button>
         <!-- Added webcam buttons -->
         <button type="button" class="webcam-button" id="webcam-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
           </svg>
           Use Camera
         </button>
         <button type="button" class="capture-button" id="capture-btn" style="display:none;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
           Capture Photo
         </button>
         <button type="button" class="stop-camera-button" id="stop-camera-btn" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          </svg>
           Stop Camera
         </button>
-        <p class="upload-note">PNG, JPG, or JPEG up to 10MB.</p>
+        <!-- Moved analyze button up to be with other buttons -->
+        <button class="analyze-button" disabled id="analyze-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4"/>
+            <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
+          </svg>
+          Analyze Face
+        </button>
+        <p class="upload-note">PNG, JPG, or JPEG up to 10MB</p>
       </div>
 
-      <!-- Success / Error message -->
-      <p id="upload-message" class="upload-message" style="display:none; font-weight:bold; margin-top: 10px;"></p>
+      <!-- Added loading section -->
+      <div id="loading-section" class="loading-section" style="display:none; opacity:0; visibility:hidden;">
+        <div class="loading-container">
+          <div class="loading-animation">
+            <div class="loading-circle"></div>
+            <div class="loading-circle"></div>
+            <div class="loading-circle"></div>
+          </div>
+          <h3>Analyzing Your Face</h3>
+          <p>Please wait while we process your image...</p>
+          <div class="loading-progress">
+            <div class="progress-bar"></div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Analyze -->
-      <button class="analyze-button" disabled id="analyze-btn">Analyze Face</button>
+      <!-- Enhanced results section -->
+      <div id="results-section" class="results-section" style="display:none;">
+        <div class="results-header">
+          <div class="results-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 12l2 2 4-4"/>
+              <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
+            </svg>
+          </div>
+          <h2>Analysis Complete</h2>
+          <p>Here are your personalized skin analysis results</p>
+        </div>
 
-      <!-- Added analysis results section -->
+        <div class="analysis-results">
+          <div class="face-display">
+            <div class="face-frame">
+              <img id="analyzed-face" src="/placeholder.svg" alt="Analyzed Face" width="80" height="80">
+              <div class="face-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+              </div>
+            </div>
+            <div class="face-info">
+              <h3 id="face-status">Face Detected Successfully</h3>
+              <p id="analysis-summary">Analysis completed with high confidence</p>
+            </div>
+          </div>
+
+          <!-- Enhanced result cards -->
+          <div class="result-cards">
+            <div class="result-card" id="skin-type-card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h4>Skin Type</h4>
+                <p id="skin-type-value">-</p>
+                <div class="probability-bars" id="skin-probabilities">
+                  <!-- Probability bars will be added here -->
+                </div>
+              </div>
+            </div>
+
+            <div class="result-card" id="eye-colors-card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h4>Eye Colors</h4>
+                <div class="eye-colors">
+                  <div class="eye-color">
+                    <span class="eye-label">Left:</span>
+                    <span id="left-eye-color" class="eye-value">-</span>
+                  </div>
+                  <div class="eye-color">
+                    <span class="eye-label">Right:</span>
+                    <span id="right-eye-color" class="eye-value">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-card" id="acne-card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h4>Acne Analysis</h4>
+                <div class="acne-info">
+                  <div class="acne-level">
+                    <span>Level:</span>
+                    <span id="acne-level" class="acne-value">-</span>
+                  </div>
+                  <div class="confidence-meter">
+                    <div class="confidence-bar">
+                      <div id="acne-confidence-fill" class="confidence-fill"></div>
+                    </div>
+                    <span id="acne-confidence" class="confidence-text">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-card" id="detections-card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <h4>Detected Issues</h4>
+                <div id="detected-issues" class="detected-issues">
+                  <!-- Issues will be populated here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips Section -->
+      <div id="tips-section" class="tips-section" style="display:none;">
+        <div class="tips-header">
+          <div class="tips-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" x2="12" y1="1" y2="3"/>
+              <line x1="12" x2="12" y1="21" y2="23"/>
+              <line x1="4.22" x2="5.64" y1="4.22" y2="5.64"/>
+              <line x1="18.36" x2="19.78" y1="18.36" y2="18.36"/>
+              <line x1="1" x2="3" y1="12" y2="12"/>
+              <line x1="21" x2="23" y1="12" y2="12"/>
+              <line x1="4.22" x2="5.64" y1="19.78" y2="18.36"/>
+              <line x1="18.36" x2="19.78" y1="5.64" y2="4.22"/>
+            </svg>
+          </div>
+          <h3>Personalized Tips</h3>
+          <p>Skincare recommendations based on your analysis</p>
+        </div>
+        <div id="tips-content" class="tips-content">
+          <!-- Tips will be populated here -->
+        </div>
+      </div>
+
       <!-- Analysis Images Section -->
-      <div id="analysis-images" style="display:none;">
-        <div class="analysis-section">
+      <div id="analysis-images" class="analysis-images-section" style="display:none;">
+        <div class="images-header">
+          <h3>Detailed Analysis</h3>
+          <p>Visual breakdown of detected areas and skin conditions</p>
+        </div>
+        
+        <div class="analysis-images-grid">
           <!-- YOLO Detection Image -->
-          <div class="analysis-card">
-            <div class="analysis-header">
-              <div class="analysis-icon">
+          <div class="analysis-image-card">
+            <div class="image-header">
+              <div class="image-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 12l2 2 4-4"/>
                   <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
                 </svg>
               </div>
-              <div class="analysis-title">
-                <h3>Detected Issues</h3>
-                <p>Areas of concern identified on your face</p>
+              <div class="image-title">
+                <h4>Issue Detection</h4>
+                <p>Areas of concern highlighted</p>
               </div>
             </div>
-            <div class="detection-container">
-              <img id="yolo-annotated-image" src="/placeholder.svg" alt="YOLO Detection Results" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
+            <div class="image-container">
+              <img id="yolo-annotated-image" src="/placeholder.svg" alt="YOLO Detection Results" width="300" height="300" style="display: none;" />
             </div>
           </div>
 
           <!-- Segmentation Image -->
-          <div class="analysis-card">
-            <div class="analysis-header">
-              <div class="analysis-icon">
+          <div class="analysis-image-card">
+            <div class="image-header">
+              <div class="image-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
                 </svg>
               </div>
-              <div class="analysis-title">
-                <h3>Skin Segmentation</h3>
-                <p>Different skin condition areas highlighted</p>
+              <div class="image-title">
+                <h4>Skin Segmentation</h4>
+                <p>Different skin areas mapped</p>
               </div>
             </div>
-            <div class="segmentation-container">
-              <img id="segmentation-overlay-image" src="/placeholder.svg" alt="Segmentation Analysis" width="300" height="300" style="width: 100%; height: auto; border: 1px solid #e1e3e5; border-radius: 8px; display: none;" />
+            <div class="image-container">
+              <img id="segmentation-overlay-image" src="/placeholder.svg" alt="Segmentation Analysis" width="300" height="300" style="display: none;" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Product Recommendations Section -->
-      <div id="product-recommendations" style="display:none;">
+      <div id="product-recommendations" class="product-recommendations-section" style="display:none;">
         <div class="recommendations-header">
+          <div class="recommendations-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="21" r="1"/>
+              <circle cx="19" cy="21" r="1"/>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57L20.42 9H5.12"/>
+            </svg>
+          </div>
           <h3>Recommended Products</h3>
-          <p>Based on your skin analysis results</p>
+          <p>Curated skincare products based on your analysis</p>
         </div>
         
         <div class="recommendations-filters">
@@ -152,7 +326,14 @@
         </div>
         
         <div id="no-products" class="no-products" style="display: none;">
-          <p>No products found matching your skin analysis. Please check back later for new recommendations.</p>
+          <div class="no-products-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12h8"/>
+            </svg>
+          </div>
+          <h4>No Products Found</h4>
+          <p>We couldn't find products matching your skin analysis. Check back later for new recommendations.</p>
         </div>
       </div>
     </div>
@@ -163,8 +344,10 @@
   document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById('picture');
     const preview = document.getElementById('preview-image');
-    const message = document.getElementById('upload-message');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
     const analyzeBtn = document.getElementById('analyze-btn');
+    const loadingSection = document.getElementById('loading-section');
+    const resultsSection = document.getElementById('results-section');
     const analysisImages = document.getElementById('analysis-images');
     const yoloImage = document.getElementById('yolo-annotated-image');
     const segmentationImage = document.getElementById('segmentation-overlay-image');
@@ -179,6 +362,8 @@
     const webcamSection = document.getElementById('webcam-section');
     const webcamVideo = document.getElementById('webcam-video');
     const webcamCanvas = document.getElementById('webcam-canvas');
+    const tipsSection = document.getElementById('tips-section');
+    const tipsContent = document.getElementById('tips-content');
     let webcamStream = null;
     let uploadedFile = null;
 
@@ -186,11 +371,11 @@
       const file = this.files[0];
       if (file) {
         preview.src = URL.createObjectURL(file);
-        message.style.display = 'none';
+        preview.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
         analyzeBtn.disabled = false;
         uploadedFile = file;
-        analysisImages.style.display = 'none';
-        productRecommendations.style.display = 'none';
+        hideResults();
         hideWebcam();
       }
     });
@@ -218,9 +403,7 @@
           webcamBtn.style.display = 'none';
         })
         .catch(function(err) {
-          message.textContent = 'Error accessing camera: ' + err.message;
-          message.style.color = 'red';
-          message.style.display = 'block';
+          console.error('Error accessing camera:', err);
         });
     }
 
@@ -231,9 +414,10 @@
       webcamCanvas.toBlob(function(blob) {
         uploadedFile = new File([blob], 'webcam-photo.jpg', { type: 'image/jpeg' });
         preview.src = URL.createObjectURL(blob);
+        preview.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
         analyzeBtn.disabled = false;
-        analysisImages.style.display = 'none';
-        productRecommendations.style.display = 'none';
+        hideResults();
         hideWebcam();
       }, 'image/jpeg', 0.8);
     }
@@ -249,21 +433,46 @@
       webcamBtn.style.display = 'inline-flex';
     }
 
+    function hideResults() {
+      loadingSection.style.display = 'none';
+      loadingSection.style.opacity = '0';
+      resultsSection.style.display = 'none';
+      analysisImages.style.display = 'none';
+      productRecommendations.style.display = 'none';
+      tipsSection.style.display = 'none';
+    }
+
     analyzeBtn.addEventListener('click', function () {
       if (!uploadedFile) {
-        message.textContent = 'Please upload an image first.';
-        message.style.color = 'red';
-        message.style.display = 'block';
         return;
       }
 
       const formData = new FormData();
       formData.append('photo', uploadedFile);
 
-      message.textContent = 'Analyzing image...';
-      message.style.color = 'black';
-      message.style.display = 'block';
+      loadingSection.style.display = 'block';
+      loadingSection.style.opacity = '1';
+      loadingSection.style.visibility = 'visible';
+      
+      // Trigger progress bar animation
+      const progressBar = loadingSection.querySelector('.progress-bar');
+      if (progressBar) {
+        progressBar.style.animation = 'none';
+        progressBar.offsetHeight; // Force reflow
+        progressBar.style.animation = 'progressFill 3s ease-in-out forwards';
+      }
+      
+      hideResults();
       analyzeBtn.disabled = true;
+      analyzeBtn.style.opacity = '0.6';
+      analyzeBtn.style.cursor = 'not-allowed';
+      
+      // Force reflow to ensure loading section is visible
+      loadingSection.offsetHeight;
+      
+      // Add minimum loading duration for better UX
+      const startTime = Date.now();
+      const minLoadingDuration = 2000; // 2 seconds minimum
 
       const apiEndpoint = '{{ block.settings.api_endpoint | default: "http://localhost:8000/upload/" }}';
       
@@ -273,113 +482,150 @@
         credentials: 'include',
       })
       .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
           return response.text().then(text => {
-            console.error('Non-JSON response received:', text);
-            throw new Error(`Server returned ${contentType || 'unknown content type'} instead of JSON. Response: ${text.substring(0, 200)}...`);
+            throw new Error(`Server returned ${contentType || 'unknown content type'} instead of JSON`);
           });
         }
-        
         return response.json();
       })
       .then(data => {
-        analyzeBtn.disabled = false;
-        if (data.error) {
-          message.textContent = 'Error: ' + data.error;
-          message.style.color = 'red';
-        } else {
-          let resultHTML = '✅ Image analyzed successfully!<br>';
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, minLoadingDuration - elapsedTime);
+        
+        setTimeout(() => {
+          loadingSection.style.display = 'none';
+          loadingSection.style.opacity = '0';
+          analyzeBtn.disabled = false;
+          analyzeBtn.style.opacity = '1';
+          analyzeBtn.style.cursor = 'pointer';
           
-          if (data.skin_type) {
-            resultHTML += `<strong>Skin Type:</strong> ${data.skin_type}<br>`;
+          if (data.error) {
+            console.error('API Error:', data.error);
+          } else {
+            displayResults(data);
           }
-          
-          if (data.left_eye_color) {
-            resultHTML += `<strong>Left Eye Color:</strong> ${data.left_eye_color}<br>`;
-          }
-          
-          if (data.right_eye_color) {
-            resultHTML += `<strong>Right Eye Color:</strong> ${data.right_eye_color}<br>`;
-          }
-          
-          if (data.acne_pred && data.acne_confidence) {
-            resultHTML += `<strong>Acne Level:</strong> ${data.acne_pred} (Confidence: ${(data.acne_confidence * 100).toFixed(1)}%)<br>`;
-          }
-          
-          if (data.type_probs && data.type_probs.length === 3) {
-            resultHTML += `<strong>Skin Type Probabilities:</strong><br>`;
-            resultHTML += `• Dry: ${(data.type_probs[0] * 100).toFixed(1)}%<br>`;
-            resultHTML += `• Normal: ${(data.type_probs[1] * 100).toFixed(1)}%<br>`;
-            resultHTML += `• Oily: ${(data.type_probs[2] * 100).toFixed(1)}%<br>`;
-          }
-          
-          if (data.yolo_boxes && data.yolo_boxes.length > 0) {
-            resultHTML += `<strong>Detected Issues:</strong><br>`;
-            
-            // Group detections by type and count them
-            const detectionCounts = {};
-            data.yolo_boxes.forEach(box => {
-              const issueType = box.label || box.class || 'Unknown';
-              if (detectionCounts[issueType]) {
-                detectionCounts[issueType]++;
-              } else {
-                detectionCounts[issueType] = 1;
-              }
-            });
-            
-            // Display each type with count and confidence
-            Object.entries(detectionCounts).forEach(([issueType, count]) => {
-              // Find the highest confidence for this issue type
-              const maxConfidence = Math.max(...data.yolo_boxes
-                .filter(box => (box.label || box.class) === issueType)
-                .map(box => box.confidence || 0));
-              
-              resultHTML += `• ${issueType}: ${count} area${count > 1 ? 's' : ''} (${(maxConfidence * 100).toFixed(1)}% confidence)<br>`;
-            });
-          }
-          
-          message.innerHTML = resultHTML;
-          message.style.color = 'green';
-
-          if(data.cropped_face){
-            preview.src = data.cropped_face;
-          }
-
-          if(data.yolo_annotated) {
-            yoloImage.src = data.yolo_annotated;
-            yoloImage.style.display = 'block';
-          }
-
-          if(data.segmentation_overlay) {
-            segmentationImage.src = data.segmentation_overlay;
-            segmentationImage.style.display = 'block';
-          }
-
-          if(data.yolo_annotated || data.segmentation_overlay) {
-            analysisImages.style.display = 'block';
-          }
-
-          showProductRecommendations(data);
-        }
+        }, remainingTime);
       })
       .catch(err => {
-        analyzeBtn.disabled = false;
-        console.error('Full error details:', err);
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, minLoadingDuration - elapsedTime);
         
-        if (err.message.includes('Failed to fetch')) {
-          message.textContent = 'Network error: Cannot connect to API server. Make sure Django is running at ' + apiEndpoint;
-        } else if (err.message.includes('JSON')) {
-          message.textContent = 'API Error: Server returned HTML instead of JSON. Check your Django server and endpoint URL.';
-        } else {
-          message.textContent = 'Upload failed: ' + err.message;
-        }
-        message.style.color = 'red';
+        setTimeout(() => {
+          loadingSection.style.display = 'none';
+          loadingSection.style.opacity = '0';
+          analyzeBtn.disabled = false;
+          analyzeBtn.style.opacity = '1';
+          analyzeBtn.style.cursor = 'pointer';
+          console.error('Analysis failed:', err);
+        }, remainingTime);
       });
     });
+
+    function displayResults(data) {
+      // Show analyzed face
+      if (data.cropped_face) {
+        document.getElementById('analyzed-face').src = data.cropped_face;
+      }
+
+      // Display skin type
+      if (data.skin_type) {
+        document.getElementById('skin-type-value').textContent = data.skin_type;
+        
+        // Display probabilities
+        if (data.type_probs && data.type_probs.length === 3) {
+          const probContainer = document.getElementById('skin-probabilities');
+          const types = ['Dry', 'Normal', 'Oily'];
+          probContainer.innerHTML = types.map((type, index) => `
+            <div class="probability-bar">
+              <div class="prob-label">
+                <span>${type}</span>
+                <span>${(data.type_probs[index] * 100).toFixed(1)}%</span>
+              </div>
+              <div class="prob-track">
+                <div class="prob-fill" style="width: ${data.type_probs[index] * 100}%"></div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Display eye colors
+      if (data.left_eye_color) {
+        document.getElementById('left-eye-color').textContent = data.left_eye_color;
+      }
+      if (data.right_eye_color) {
+        document.getElementById('right-eye-color').textContent = data.right_eye_color;
+      }
+
+      // Display acne information
+      if (data.acne_pred && data.acne_confidence) {
+        document.getElementById('acne-level').textContent = data.acne_pred;
+        const confidence = data.acne_confidence * 100;
+        document.getElementById('acne-confidence').textContent = `${confidence.toFixed(1)}%`;
+        document.getElementById('acne-confidence-fill').style.width = `${confidence}%`;
+      }
+
+      // Display detected issues
+      if (data.yolo_boxes && data.yolo_boxes.length > 0) {
+        const detectionCounts = {};
+        data.yolo_boxes.forEach(box => {
+          const issueType = box.label || box.class || 'Unknown';
+          if (detectionCounts[issueType]) {
+            detectionCounts[issueType].count++;
+            detectionCounts[issueType].maxConfidence = Math.max(detectionCounts[issueType].maxConfidence, box.confidence || 0);
+          } else {
+            detectionCounts[issueType] = {
+              count: 1,
+              maxConfidence: box.confidence || 0
+            };
+          }
+        });
+        
+        const issuesContainer = document.getElementById('detected-issues');
+        issuesContainer.innerHTML = Object.entries(detectionCounts).map(([issue, data]) => `
+          <div class="issue-item">
+            <div class="issue-info">
+              <span class="issue-name">${issue}</span>
+              <span class="issue-count">${data.count} area${data.count > 1 ? 's' : ''}</span>
+            </div>
+            <div class="issue-confidence">
+              <div class="confidence-bar">
+                <div class="confidence-fill" style="width: ${data.maxConfidence * 100}%"></div>
+              </div>
+              <span class="confidence-text">${(data.maxConfidence * 100).toFixed(1)}%</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Display analysis images
+      if (data.yolo_annotated) {
+        yoloImage.src = data.yolo_annotated;
+        yoloImage.style.display = 'block';
+      }
+
+      if (data.segmentation_overlay) {
+        segmentationImage.src = data.segmentation_overlay;
+        segmentationImage.style.display = 'block';
+      }
+
+      if (data.yolo_annotated || data.segmentation_overlay) {
+        analysisImages.style.display = 'block';
+      }
+
+      // Display tips
+      if (data.tips && data.tips.length > 0) {
+        displayTips(data.tips);
+      }
+
+      // Show results section
+      resultsSection.style.display = 'block';
+      
+      // Show product recommendations
+      showProductRecommendations(data);
+    }
 
     function showProductRecommendations(analysisData) {
       const filters = [];
@@ -400,16 +646,14 @@
       if (analysisData.segmentation_results && Array.isArray(analysisData.segmentation_results)) {
         const segmentationIssues = analysisData.segmentation_results
           .map(result => {
-            // Handle different possible structures of segmentation results
             if (typeof result === 'string') {
               return result.toLowerCase();
             } else if (result && typeof result === 'object') {
-              // If it's an object, try to extract relevant fields
               return (result.class || result.label || result.name || '').toString().toLowerCase();
             }
             return '';
           })
-          .filter(issue => issue.length > 0); // Remove empty strings
+          .filter(issue => issue.length > 0);
         filters.push(...segmentationIssues);
       }
       
@@ -479,6 +723,33 @@
       
       // Show the recommendations section
       productRecommendations.style.display = 'block';
+    }
+
+    function displayTips(tips) {
+      if (tips && tips.length > 0) {
+        tipsContent.innerHTML = tips.map(tip => 
+          `<div class="tip-item">
+            <div class="tip-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" x2="12" y1="1" y2="3"/>
+                <line x1="12" x2="12" y1="21" y2="23"/>
+                <line x1="4.22" x2="5.64" y1="4.22" y2="5.64"/>
+                <line x1="18.36" x2="19.78" y1="18.36" y2="19.78"/>
+                <line x1="1" x2="3" y1="12" y2="12"/>
+                <line x1="21" x2="23" y1="12" y2="12"/>
+                <line x1="4.22" x2="5.64" y1="19.78" y2="18.36"/>
+                <line x1="18.36" x2="19.78" y1="5.64" y2="4.22"/>
+              </svg>
+            </div>
+            <div class="tip-text">${tip}</div>
+          </div>`
+        ).join('');
+        
+        tipsSection.style.display = 'block';
+      } else {
+        tipsSection.style.display = 'none';
+      }
     }
   });
 </script>
