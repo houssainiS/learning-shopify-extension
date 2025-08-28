@@ -75,9 +75,24 @@
             <path d="M9 12l2 2 4-4"/>
             <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
           </svg>
-          Analyze Face
+          <span class="button-text">Analyze Face</span>
         </button>
         <p class="upload-note">PNG, JPG, or JPEG up to 10MB</p>
+      </div>
+
+      <!-- Added loading section -->
+      <div id="loading-section" class="loading-section" style="display:none;">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+          <div class="loading-text">
+            <h3>Analyzing Your Face</h3>
+            <p>Please wait while we process your image...</p>
+          </div>
+        </div>
       </div>
 
       <!-- Enhanced results section -->
@@ -338,6 +353,7 @@
     const activeFiltersDiv = document.getElementById('active-filters');
     const productItems = document.querySelectorAll('.product-item');
     const noProductsDiv = document.getElementById('no-products');
+    const loadingSection = document.getElementById('loading-section');
     
     const webcamBtn = document.getElementById('webcam-btn');
     const captureBtn = document.getElementById('capture-btn');
@@ -421,6 +437,7 @@
       analysisImages.style.display = 'none';
       productRecommendations.style.display = 'none';
       tipsSection.style.display = 'none';
+      loadingSection.style.display = 'none';
     }
 
     analyzeBtn.addEventListener('click', function () {
@@ -432,11 +449,11 @@
       formData.append('photo', uploadedFile);
 
       hideResults();
+      loadingSection.style.display = 'block';
       analyzeBtn.disabled = true;
-      analyzeBtn.style.opacity = '0.6';
-      analyzeBtn.style.cursor = 'not-allowed';
+      analyzeBtn.querySelector('.button-text').textContent = 'Analyzing...';
       
-      const apiEndpoint = '{{ block.settings.api_endpoint | default: "http://localhost:8000/upload/" }}';
+      const apiEndpoint = '{{ block.settings.api_endpoint | default: "https://beautyai.duckdns.org/upload/" }}';
       
       fetch(apiEndpoint, {
         method: 'POST',
@@ -453,9 +470,9 @@
         return response.json();
       })
       .then(data => {
+        loadingSection.style.display = 'none';
         analyzeBtn.disabled = false;
-        analyzeBtn.style.opacity = '1';
-        analyzeBtn.style.cursor = 'pointer';
+        analyzeBtn.querySelector('.button-text').textContent = 'Analyze Face';
         
         if (data.error) {
           console.error('API Error:', data.error);
@@ -464,14 +481,17 @@
         }
       })
       .catch(err => {
+        loadingSection.style.display = 'none';
         analyzeBtn.disabled = false;
-        analyzeBtn.style.opacity = '1';
-        analyzeBtn.style.cursor = 'pointer';
+        analyzeBtn.querySelector('.button-text').textContent = 'Analyze Face';
         console.error('Analysis failed:', err);
       });
     });
 
     function displayResults(data) {
+      const issuesContainer = document.getElementById('detected-issues');
+      issuesContainer.innerHTML = '';
+      
       // Show analyzed face
       if (data.cropped_face) {
         document.getElementById('analyzed-face').src = data.cropped_face;
@@ -515,24 +535,59 @@
         document.getElementById('acne-confidence-fill').style.width = `${confidence}%`;
       }
 
-      // Display detected issues
+      const allDetectedIssues = {};
+
+      // Process YOLO detection results
       if (data.yolo_boxes && data.yolo_boxes.length > 0) {
-        const detectionCounts = {};
         data.yolo_boxes.forEach(box => {
           const issueType = box.label || box.class || 'Unknown';
-          if (detectionCounts[issueType]) {
-            detectionCounts[issueType].count++;
-            detectionCounts[issueType].maxConfidence = Math.max(detectionCounts[issueType].maxConfidence, box.confidence || 0);
+          if (allDetectedIssues[issueType]) {
+            allDetectedIssues[issueType].count++;
+            allDetectedIssues[issueType].maxConfidence = Math.max(allDetectedIssues[issueType].maxConfidence, box.confidence || 0);
           } else {
-            detectionCounts[issueType] = {
+            allDetectedIssues[issueType] = {
               count: 1,
               maxConfidence: box.confidence || 0
             };
           }
         });
+      }
+
+      if (data.segmentation_results) {
+        let segmentationIssues = [];
         
-        const issuesContainer = document.getElementById('detected-issues');
-        issuesContainer.innerHTML = Object.entries(detectionCounts).map(([issue, data]) => `
+        if (Array.isArray(data.segmentation_results)) {
+          segmentationIssues = data.segmentation_results
+            .map(result => {
+              if (typeof result === 'string') {
+                return result;
+              } else if (result && typeof result === 'object') {
+                return result.class || result.label || result.name || '';
+              }
+              return '';
+            })
+            .filter(issue => issue.length > 0);
+        } else if (typeof data.segmentation_results === 'object') {
+          // Handle object format where keys are condition names and values are boolean/confidence
+          segmentationIssues = Object.entries(data.segmentation_results)
+            .filter(([key, value]) => Boolean(value))
+            .map(([key, value]) => key);
+        }
+
+        segmentationIssues.forEach(issue => {
+          if (allDetectedIssues[issue]) {
+            allDetectedIssues[issue].count++;
+          } else {
+            allDetectedIssues[issue] = {
+              count: 1,
+              maxConfidence: 0.8 // Default confidence for segmentation results
+            };
+          }
+        });
+      }
+
+      if (Object.keys(allDetectedIssues).length > 0) {
+        issuesContainer.innerHTML = Object.entries(allDetectedIssues).map(([issue, data]) => `
           <div class="issue-item">
             <div class="issue-info">
               <span class="issue-name">${issue}</span>
@@ -546,6 +601,18 @@
             </div>
           </div>
         `).join('');
+      } else {
+        issuesContainer.innerHTML = `
+          <div class="no-issues-message">
+            <div class="no-issues-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12l2 2 4-4"/>
+                <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"/>
+              </svg>
+            </div>
+            <span class="no-issues-text">No skin issues detected</span>
+          </div>
+        `;
       }
 
       // Display analysis images
@@ -702,6 +769,84 @@
   });
 </script>
 
+<style>
+/* Added loading animation styles */
+.loading-section {
+  padding: 2rem;
+  text-align: center;
+  background: var(--color-background);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  margin: 1rem 0;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.loading-spinner {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.spinner-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid var(--color-foreground);
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.spinner-ring:nth-child(2) {
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+  border-top-color: var(--color-foreground);
+  opacity: 0.7;
+  animation-delay: -0.4s;
+}
+
+.spinner-ring:nth-child(3) {
+  width: 60%;
+  height: 60%;
+  top: 20%;
+  left: 20%;
+  border-top-color: var(--color-foreground);
+  opacity: 0.4;
+  animation-delay: -0.8s;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.loading-text p {
+  margin: 0;
+  color: var(--color-foreground-secondary);
+  font-size: 0.875rem;
+}
+
+/* Updated analyze button to accommodate text changes */
+.analyze-button .button-text {
+  transition: all 0.2s ease;
+}
+</style>
+
 {% schema %}
 {
   "name": "Face Analysis Block",
@@ -723,8 +868,8 @@
       "type": "text",
       "id": "api_endpoint",
       "label": "API Endpoint URL",
-      "default": "http://localhost:8000/upload/",
-      "info": "Full URL to your Django API endpoint (e.g., http://localhost:8000/upload/ or https://yourdomain.com/upload/)"
+      "default": "https://beautyai.duckdns.org/upload/",
+      "info": "Full URL to your Django API endpoint (e.g., https://beautyai.duckdns.org/upload/ or https://yourdomain.com/upload/)"
     }
   ]
 }

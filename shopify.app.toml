@@ -3,7 +3,7 @@
 client_id = "d7d31726e1d03bf022e016021f595095"
 name = "first-extension"
 handle = "first-extension-19"
-application_url = "https://cleaners-wells-retain-tap.trycloudflare.com"
+application_url = "https://soup-pottery-successfully-shepherd.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://cleaners-wells-retain-tap.trycloudflare.com/auth/callback", "https://cleaners-wells-retain-tap.trycloudflare.com/auth/shopify/callback", "https://cleaners-wells-retain-tap.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://soup-pottery-successfully-shepherd.trycloudflare.com/auth/callback", "https://soup-pottery-successfully-shepherd.trycloudflare.com/auth/shopify/callback", "https://soup-pottery-successfully-shepherd.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
