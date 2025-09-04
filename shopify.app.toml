@@ -1,9 +1,9 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+# Learn more about configuring your app at https://shopify.dev/docs/apps/build/cli/configuration
 
 client_id = "d7d31726e1d03bf022e016021f595095"
 name = "first-extension"
 handle = "first-extension-19"
-application_url = "https://wizard-velocity-since-fruits.trycloudflare.com"
+application_url = "https://beautyai.duckdns.org/app_entry/"
 embedded = true
 
 [build]
@@ -11,22 +11,15 @@ include_config_on_deploy = true
 automatically_update_urls_on_dev = true
 
 [webhooks]
+# Use the latest stable API version
 api_version = "2025-07"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
-  [[webhooks.subscriptions]]
-  topics = [ "app/scopes_update" ]
-  uri = "/webhooks/app/scopes_update"
-
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+# Add more scopes later if needed (e.g., read_products)
+scopes = "read_products,write_products"
 
 [auth]
-redirect_urls = ["https://wizard-velocity-since-fruits.trycloudflare.com/auth/callback", "https://wizard-velocity-since-fruits.trycloudflare.com/auth/shopify/callback", "https://wizard-velocity-since-fruits.trycloudflare.com/api/auth/callback"]
-
-[pos]
-embedded = false
+# Matches your Django callback URL
+redirect_urls = [
+  "https://beautyai.duckdns.org/auth/callback/"
+]
