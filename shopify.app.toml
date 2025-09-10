@@ -15,7 +15,8 @@ api_version = "2025-07"
 
 [access_scopes]
 # Add more scopes later if needed (e.g., read_products)
-scopes = "read_products,write_products"
+scopes = "write_online_store_pages,read_products,write_products"
+
 
 [auth]
 # Matches your Django callback URL
