@@ -15,7 +15,7 @@ api_version = "2025-07"
 
 [access_scopes]
 # Add more scopes later if needed (e.g., read_products)
-scopes = "write_online_store_pages,read_products,write_products,write_content"
+scopes = "write_online_store_pages,read_products,write_products,write_content,read_online_store_pages,read_online_store_navigation,write_online_store_navigation"
 
 
 [auth]
