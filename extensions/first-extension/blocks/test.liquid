@@ -1,4 +1,5 @@
 {{ 'first.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'tips.js' | asset_url }}" defer></script>
 
 <div class="face-analysis-container">
   <div class="face-analysis-card">
@@ -651,14 +652,17 @@
         analysisImages.style.display = 'block';
       }
 
-      // Display tips
-      if (data.tips && data.tips.length > 0) {
-        displayTips(data.tips);
+      // Generate tips using the client-side generateTips function
+      if (typeof generateTips === 'function') {
+        const clientTips = generateTips(data);
+        displayTips(clientTips);
+      } else {
+        console.warn('generateTips function not available - tips.js may not be loaded');
+        // Fallback to backend tips if available
+        if (data.tips && data.tips.length > 0) {
+          displayTips(data.tips);
+        }
       }
-
-      // Show results section
-      resultsSection.style.display = 'block';
-      
       // Show product recommendations
       showProductRecommendations(data);
     }
