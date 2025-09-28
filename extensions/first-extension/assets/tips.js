@@ -1,272 +1,302 @@
-// Beauty Tips Generator for Shopify Extension
-// Converts Python tip dictionaries to JavaScript for frontend use
-
+// Beauty Tips Generator for Shopify Extension with Multilingual Support
 const SKIN_TYPE_TIPS = {
-  Dry: [
-    "Use a gentle, cream-based cleanser to avoid stripping natural oils.",
-    "Apply a rich, hydrating moisturizer twice daily.",
-    "Look for products with hyaluronic acid and ceramides.",
-    "Use a humidifier in your bedroom to add moisture to the air.",
-    "Avoid hot water when washing your face - use lukewarm instead.",
-    "Consider using a facial oil as the last step in your nighttime routine.",
-  ],
-  Normal: [
-    "Maintain your routine with a balanced cleanser and moisturizer.",
-    "Use sunscreen daily to prevent premature aging.",
-    "Incorporate antioxidants like vitamin C into your morning routine.",
-    "Exfoliate 1-2 times per week to maintain smooth skin texture.",
-    "Stay hydrated by drinking plenty of water throughout the day.",
-    "Consider adding a weekly hydrating mask to your routine.",
-  ],
-  Oily: [
-    "Use a foaming or gel-based cleanser to control excess oil.",
-    "Look for non-comedogenic, oil-free moisturizers.",
-    "Incorporate salicylic acid or niacinamide to regulate oil production.",
-    "Use clay masks 1-2 times per week to absorb excess oil.",
-    "Don't skip moisturizer - dehydrated skin can produce more oil.",
-    "Consider using blotting papers throughout the day instead of over-washing.",
-  ],
+  en: {
+    Dry: [
+      "Use a gentle, cream-based cleanser to avoid stripping natural oils.",
+      "Apply a rich, hydrating moisturizer twice daily.",
+      "Look for products with hyaluronic acid and ceramides.",
+      "Use a humidifier in your bedroom to add moisture to the air.",
+      "Avoid hot water when washing your face - use lukewarm instead.",
+      "Consider using a facial oil as the last step in your nighttime routine.",
+    ],
+    Normal: [
+      "Maintain your routine with a balanced cleanser and moisturizer.",
+      "Use sunscreen daily to prevent premature aging.",
+      "Incorporate antioxidants like vitamin C into your morning routine.",
+      "Exfoliate 1-2 times per week to maintain smooth skin texture.",
+      "Stay hydrated by drinking plenty of water throughout the day.",
+      "Consider adding a weekly hydrating mask to your routine.",
+    ],
+    Oily: [
+      "Use a foaming or gel-based cleanser to control excess oil.",
+      "Look for non-comedogenic, oil-free moisturizers.",
+      "Incorporate salicylic acid or niacinamide to regulate oil production.",
+      "Use clay masks 1-2 times per week to absorb excess oil.",
+      "Don't skip moisturizer - dehydrated skin can produce more oil.",
+      "Consider using blotting papers throughout the day instead of over-washing.",
+    ],
+  },
+  fr: {
+    Dry: [
+      "Utilisez un nettoyant doux à base de crème pour éviter d'éliminer les huiles naturelles.",
+      "Appliquez une crème hydratante riche deux fois par jour.",
+      "Recherchez des produits contenant de l'acide hyaluronique et des céramides.",
+      "Utilisez un humidificateur dans votre chambre pour ajouter de l'humidité à l'air.",
+      "Évitez l'eau chaude pour vous laver le visage - utilisez de l'eau tiède.",
+      "Considérez l'utilisation d'une huile faciale comme dernière étape de votre routine nocturne.",
+    ],
+    Normal: [
+      "Maintenez votre routine avec un nettoyant et une crème hydratante équilibrés.",
+      "Utilisez un écran solaire quotidiennement pour prévenir le vieillissement prématuré.",
+      "Incorporez des antioxydants comme la vitamine C dans votre routine matinale.",
+      "Exfoliez 1 à 2 fois par semaine pour maintenir une texture de peau lisse.",
+      "Restez hydraté en buvant beaucoup d'eau tout au long de la journée.",
+      "Considérez l'ajout d'un masque hydratant hebdomadaire à votre routine.",
+    ],
+    Oily: [
+      "Utilisez un nettoyant moussant ou à base de gel pour contrôler l'excès de sébum.",
+      "Recherchez des crèmes hydratantes non comédogènes et sans huile.",
+      "Incorporez de l'acide salicylique ou de la niacinamide pour réguler la production de sébum.",
+      "Utilisez des masques d'argile 1 à 2 fois par semaine pour absorber l'excès de sébum.",
+      "Ne sautez pas la crème hydratante - une peau déshydratée peut produire plus de sébum.",
+      "Considérez l'utilisation de papiers buvards tout au long de la journée au lieu de trop laver.",
+    ],
+  },
+  ar: {
+    Dry: [
+      "استخدم منظف لطيف كريمي لتجنب إزالة الزيوت الطبيعية.",
+      "ضع مرطب غني ومرطب مرتين يومياً.",
+      "ابحث عن منتجات تحتوي على حمض الهيالورونيك والسيراميد.",
+      "استخدم جهاز ترطيب في غرفة نومك لإضافة الرطوبة للهواء.",
+      "تجنب الماء الساخن عند غسل وجهك - استخدم الماء الفاتر بدلاً من ذلك.",
+      "فكر في استخدام زيت الوجه كخطوة أخيرة في روتينك الليلي.",
+    ],
+    Normal: [
+      "حافظ على روتينك بمنظف ومرطب متوازن.",
+      "استخدم واقي الشمس يومياً لمنع الشيخوخة المبكرة.",
+      "أدرج مضادات الأكسدة مثل فيتامين سي في روتينك الصباحي.",
+      "قشر البشرة 1-2 مرات في الأسبوع للحفاظ على ملمس البشرة الناعم.",
+      "ابق رطباً بشرب الكثير من الماء طوال اليوم.",
+      "فكر في إضافة قناع مرطب أسبوعي لروتينك.",
+    ],
+    Oily: [
+      "استخدم منظف رغوي أو جل للتحكم في الزيت الزائد.",
+      "ابحث عن مرطبات غير كوميدوجينية وخالية من الزيت.",
+      "أدرج حمض الساليسيليك أو النياسيناميد لتنظيم إنتاج الزيت.",
+      "استخدم أقنعة الطين 1-2 مرات في الأسبوع لامتصاص الزيت الزائد.",
+      "لا تتخط المرطب - البشرة المجففة يمكن أن تنتج المزيد من الزيت.",
+      "فكر في استخدام أوراق التنشيف طوال اليوم بدلاً من الغسل المفرط.",
+    ],
+  },
 }
 
 const EYE_COLOR_TIPS = {
-  Brown: [
-    "Enhance brown eyes with warm eyeshadow tones like gold, bronze, and copper.",
-    "Purple and plum shades create beautiful contrast with brown eyes.",
-    "Try navy blue eyeliner instead of black for a softer look.",
-    "Green eyeshadows can make brown eyes appear more vibrant.",
-  ],
-  Blue: [
-    "Warm tones like peach, coral, and bronze complement blue eyes beautifully.",
-    "Orange and copper eyeshadows make blue eyes pop.",
-    "Brown eyeliner can be more flattering than black for everyday wear.",
-    "Avoid blue eyeshadows that match your eye color exactly.",
-  ],
-  Green: [
-    "Purple and plum shades are perfect for making green eyes stand out.",
-    "Red and pink tones create stunning contrast with green eyes.",
-    "Golden and bronze shades enhance the warmth in green eyes.",
-    "Brown eyeliner often looks more natural than black with green eyes.",
-  ],
-  Hazel: [
-    "Bring out golden flecks with warm browns and golds.",
-    "Purple shades can emphasize green tones in hazel eyes.",
-    "Experiment with both warm and cool tones to see what works best.",
-    "Bronze and copper eyeshadows enhance the complexity of hazel eyes.",
-  ],
-  Gray: [
-    "Silver and charcoal eyeshadows complement gray eyes naturally.",
-    "Purple and plum shades can make gray eyes appear more blue.",
-    "Warm browns can bring out any golden flecks in gray eyes.",
-    "Black eyeliner creates striking definition with gray eyes.",
-  ],
+  en: {
+    Brown: [
+      "Enhance brown eyes with warm eyeshadow tones like gold, bronze, and copper.",
+      "Purple and plum shades create beautiful contrast with brown eyes.",
+      "Try navy blue eyeliner instead of black for a softer look.",
+      "Green eyeshadows can make brown eyes appear more vibrant.",
+    ],
+    Blue: [
+      "Warm tones like peach, coral, and bronze complement blue eyes beautifully.",
+      "Orange and copper eyeshadows make blue eyes pop.",
+      "Brown eyeliner can be more flattering than black for everyday wear.",
+      "Avoid blue eyeshadows that match your eye color exactly.",
+    ],
+    Green: [
+      "Purple and plum shades are perfect for making green eyes stand out.",
+      "Red and pink tones create stunning contrast with green eyes.",
+      "Golden and bronze shades enhance the warmth in green eyes.",
+      "Brown eyeliner often looks more natural than black with green eyes.",
+    ],
+    Hazel: [
+      "Bring out golden flecks with warm browns and golds.",
+      "Purple shades can emphasize green tones in hazel eyes.",
+      "Experiment with both warm and cool tones to see what works best.",
+      "Bronze and copper eyeshadows enhance the complexity of hazel eyes.",
+    ],
+    Gray: [
+      "Silver and charcoal eyeshadows complement gray eyes naturally.",
+      "Purple and plum shades can make gray eyes appear more blue.",
+      "Warm browns can bring out any golden flecks in gray eyes.",
+      "Black eyeliner creates striking definition with gray eyes.",
+    ],
+  },
+  fr: {
+    Brown: [
+      "Rehaussez les yeux bruns avec des tons d'ombre à paupières chauds comme l'or, le bronze et le cuivre.",
+      "Les nuances violettes et prune créent un beau contraste avec les yeux bruns.",
+      "Essayez l'eye-liner bleu marine au lieu du noir pour un look plus doux.",
+      "Les ombres à paupières vertes peuvent faire paraître les yeux bruns plus vibrants.",
+    ],
+    Blue: [
+      "Les tons chauds comme la pêche, le corail et le bronze complètent magnifiquement les yeux bleus.",
+      "Les ombres à paupières orange et cuivre font ressortir les yeux bleus.",
+      "L'eye-liner brun peut être plus flatteur que le noir pour un usage quotidien.",
+      "Évitez les ombres à paupières bleues qui correspondent exactement à votre couleur d'yeux.",
+    ],
+    Green: [
+      "Les nuances violettes et prune sont parfaites pour faire ressortir les yeux verts.",
+      "Les tons rouges et roses créent un contraste saisissant avec les yeux verts.",
+      "Les nuances dorées et bronze rehaussent la chaleur des yeux verts.",
+      "L'eye-liner brun paraît souvent plus naturel que le noir avec les yeux verts.",
+    ],
+    Hazel: [
+      "Faites ressortir les paillettes dorées avec des bruns et des ors chauds.",
+      "Les nuances violettes peuvent accentuer les tons verts des yeux noisette.",
+      "Expérimentez avec des tons chauds et froids pour voir ce qui fonctionne le mieux.",
+      "Les ombres à paupières bronze et cuivre rehaussent la complexité des yeux noisette.",
+    ],
+    Gray: [
+      "Les ombres à paupières argentées et anthracite complètent naturellement les yeux gris.",
+      "Les nuances violettes et prune peuvent faire paraître les yeux gris plus bleus.",
+      "Les bruns chauds peuvent faire ressortir les paillettes dorées des yeux gris.",
+      "L'eye-liner noir crée une définition frappante avec les yeux gris.",
+    ],
+  },
+  ar: {
+    Brown: [
+      "عزز العيون البنية بألوان ظلال العيون الدافئة مثل الذهبي والبرونزي والنحاسي.",
+      "الألوان البنفسجية والخوخية تخلق تباين جميل مع العيون البنية.",
+      "جرب كحل العيون الأزرق الداكن بدلاً من الأسود للحصول على مظهر أنعم.",
+      "ظلال العيون الخضراء يمكن أن تجعل العيون البنية تبدو أكثر حيوية.",
+    ],
+    Blue: [
+      "الألوان الدافئة مثل الخوخي والمرجاني والبرونزي تكمل العيون الزرقاء بشكل جميل.",
+      "ظلال العيون البرتقالية والنحاسية تجعل العيون الزرقاء تبرز.",
+      "كحل العيون البني يمكن أن يكون أكثر إطراءً من الأسود للاستخدام اليومي.",
+      "تجنب ظلال العيون الزرقاء التي تطابق لون عينيك تماماً.",
+    ],
+    Green: [
+      "الألوان البنفسجية والخوخية مثالية لإبراز العيون الخضراء.",
+      "الألوان الحمراء والوردية تخلق تباين مذهل مع العيون الخضراء.",
+      "الألوان الذهبية والبرونزية تعزز الدفء في العيون الخضراء.",
+      "كحل العيون البني غالباً ما يبدو أكثر طبيعية من الأسود مع العيون الخضراء.",
+    ],
+    Hazel: [
+      "أبرز البقع الذهبية بالألوان البنية والذهبية الدافئة.",
+      "الألوان البنفسجية يمكن أن تؤكد على الألوان الخضراء في العيون العسلية.",
+      "جرب الألوان الدافئة والباردة لترى ما يناسبك أكثر.",
+      "ظلال العيون البرونزية والنحاسية تعزز تعقيد العيون العسلية.",
+    ],
+    Gray: [
+      "ظلال العيون الفضية والرمادية الداكنة تكمل العيون الرمادية بشكل طبيعي.",
+      "الألوان البنفسجية والخوخية يمكن أن تجعل العيون الرمادية تبدو أكثر زرقة.",
+      "الألوان البنية الدافئة يمكن أن تبرز أي بقع ذهبية في العيون الرمادية.",
+      "كحل العيون الأسود يخلق تعريف مذهل مع العيون الرمادية.",
+    ],
+  },
 }
 
 const ACNE_SEVERITY_TIPS = {
-  0: [
-    "Maintain your current skincare routine to keep skin clear.",
-    "Use a gentle cleanser and non-comedogenic moisturizer.",
-    "Don't forget daily sunscreen to prevent post-inflammatory hyperpigmentation.",
-    "Consider incorporating antioxidants like vitamin C for overall skin health.",
-  ],
-  1: [
-    "Use a gentle salicylic acid cleanser to prevent clogged pores.",
-    "Spot treat blemishes with benzoyl peroxide or tea tree oil.",
-    "Avoid over-cleansing, which can irritate skin and worsen breakouts.",
-    "Use non-comedogenic products to prevent further clogging.",
-  ],
-  2: [
-    "Consider adding a retinoid to your nighttime routine (start slowly).",
-    "Use salicylic acid or benzoyl peroxide products consistently.",
-    "Don't pick at blemishes - this can lead to scarring.",
-    "Consider seeing a dermatologist for personalized treatment options.",
-  ],
-  3: [
-    "Consult with a dermatologist for prescription treatment options.",
-    "Be gentle with your skin - avoid harsh scrubbing or over-treatment.",
-    "Consider professional treatments like chemical peels or light therapy.",
-    "Maintain a consistent, gentle routine while seeking professional help.",
-  ],
+  en: {
+    0: [
+      "Maintain your current skincare routine to keep skin clear.",
+      "Use a gentle cleanser and non-comedogenic moisturizer.",
+      "Don't forget daily sunscreen to prevent post-inflammatory hyperpigmentation.",
+      "Consider incorporating antioxidants like vitamin C for overall skin health.",
+    ],
+    1: [
+      "Use a gentle salicylic acid cleanser to prevent clogged pores.",
+      "Spot treat blemishes with benzoyl peroxide or tea tree oil.",
+      "Avoid over-cleansing, which can irritate skin and worsen breakouts.",
+      "Use non-comedogenic products to prevent further clogging.",
+    ],
+    2: [
+      "Consider adding a retinoid to your nighttime routine (start slowly).",
+      "Use salicylic acid or benzoyl peroxide products consistently.",
+      "Don't pick at blemishes - this can lead to scarring.",
+      "Consider seeing a dermatologist for personalized treatment options.",
+    ],
+    3: [
+      "Consult with a dermatologist for prescription treatment options.",
+      "Be gentle with your skin - avoid harsh scrubbing or over-treatment.",
+      "Consider professional treatments like chemical peels or light therapy.",
+      "Maintain a consistent, gentle routine while seeking professional help.",
+    ],
+  },
+  fr: {
+    0: [
+      "Maintenez votre routine de soins actuelle pour garder une peau claire.",
+      "Utilisez un nettoyant doux et une crème hydratante non comédogène.",
+      "N'oubliez pas l'écran solaire quotidien pour prévenir l'hyperpigmentation post-inflammatoire.",
+      "Considérez l'incorporation d'antioxydants comme la vitamine C pour la santé globale de la peau.",
+    ],
+    1: [
+      "Utilisez un nettoyant doux à l'acide salicylique pour prévenir les pores obstrués.",
+      "Traitez localement les imperfections avec du peroxyde de benzoyle ou de l'huile d'arbre à thé.",
+      "Évitez le nettoyage excessif, qui peut irriter la peau et aggraver les éruptions.",
+      "Utilisez des produits non comédogènes pour éviter d'autres obstructions.",
+    ],
+    2: [
+      "Considérez l'ajout d'un rétinoïde à votre routine nocturne (commencez lentement).",
+      "Utilisez des produits à l'acide salicylique ou au peroxyde de benzoyle de manière cohérente.",
+      "Ne touchez pas aux imperfections - cela peut conduire à des cicatrices.",
+      "Considérez consulter un dermatologue pour des options de traitement personnalisées.",
+    ],
+    3: [
+      "Consultez un dermatologue pour des options de traitement sur ordonnance.",
+      "Soyez doux avec votre peau - évitez le gommage dur ou le sur-traitement.",
+      "Considérez des traitements professionnels comme les peelings chimiques ou la thérapie par la lumière.",
+      "Maintenez une routine cohérente et douce tout en cherchant une aide professionnelle.",
+    ],
+  },
+  ar: {
+    0: [
+      "حافظ على روتين العناية بالبشرة الحالي للحفاظ على بشرة صافية.",
+      "استخدم منظف لطيف ومرطب غير كوميدوجيني.",
+      "لا تنس واقي الشمس اليومي لمنع فرط التصبغ بعد الالتهاب.",
+      "فكر في دمج مضادات الأكسدة مثل فيتامين سي لصحة البشرة العامة.",
+    ],
+    1: [
+      "استخدم منظف لطيف بحمض الساليسيليك لمنع انسداد المسام.",
+      "عالج البقع موضعياً ببيروكسيد البنزويل أو زيت شجرة الشاي.",
+      "تجنب التنظيف المفرط، الذي يمكن أن يهيج البشرة ويزيد من البثور.",
+      "استخدم منتجات غير كوميدوجينية لمنع المزيد من الانسداد.",
+    ],
+    2: [
+      "فكر في إضافة ريتينويد لروتينك الليلي (ابدأ ببطء).",
+      "استخدم منتجات حمض الساليسيليك أو بيروكسيد البنزويل بانتظام.",
+      "لا تلمس البثور - هذا يمكن أن يؤدي إلى ندبات.",
+      "فكر في رؤية طبيب الجلدية لخيارات العلاج الشخصية.",
+    ],
+    3: [
+      "استشر طبيب الجلدية لخيارات العلاج بوصفة طبية.",
+      "كن لطيفاً مع بشرتك - تجنب الفرك القاسي أو الإفراط في العلاج.",
+      "فكر في العلاجات المهنية مثل التقشير الكيميائي أو العلاج بالضوء.",
+      "حافظ على روتين ثابت ولطيف أثناء طلب المساعدة المهنية.",
+    ],
+  },
 }
 
-const SEGMENTATION_TIPS = {
-  background: [
-    "Focus on overall skin health with a consistent daily routine.",
-    "Use products appropriate for your skin type and concerns.",
-  ],
-  skin: [
-    "Maintain healthy skin with proper cleansing and moisturizing.",
-    "Use sunscreen daily to protect against UV damage and premature aging.",
-  ],
-  nose: [
-    "The nose area tends to be oilier - consider using pore strips occasionally.",
-    "Use a gentle exfoliant to prevent blackheads in the nose area.",
-  ],
-  eye_g: [
-    "Use a gentle eye cream to keep the delicate eye area moisturized.",
-    "Consider using an eye cream with caffeine to reduce puffiness.",
-  ],
-  l_eye: [
-    "Apply eye cream gently with your ring finger to avoid pulling the skin.",
-    "Use products specifically formulated for the delicate eye area.",
-  ],
-  r_eye: [
-    "Be consistent with eye care on both sides of your face.",
-    "Consider using an eye mask weekly for extra hydration.",
-  ],
-  l_brow: [
-    "Keep eyebrows well-groomed to frame your face beautifully.",
-    "Use a brow serum if you want to encourage fuller growth.",
-  ],
-  r_brow: [
-    "Maintain symmetrical brow care for balanced facial features.",
-    "Consider professional brow shaping for the best results.",
-  ],
-  l_ear: [
-    "Don't forget to apply sunscreen to your ears when spending time outdoors.",
-    "Keep ears clean and dry to prevent irritation.",
-  ],
-  r_ear: [
-    "Include ears in your skincare routine, especially sun protection.",
-    "Be gentle when cleaning around the ear area.",
-  ],
-  mouth: [
-    "Keep lips moisturized with a good lip balm, especially in dry weather.",
-    "Exfoliate lips gently once a week to remove dead skin.",
-  ],
-  u_lip: [
-    "Use lip balm with SPF during the day to protect from sun damage.",
-    "Consider using a lip treatment at night for extra hydration.",
-  ],
-  l_lip: [
-    "Keep lips hydrated to prevent cracking and maintain smoothness.",
-    "Avoid licking lips as this can cause more dryness.",
-  ],
-  hair: [
-    "Healthy hair starts with a healthy scalp - keep it clean and moisturized.",
-    "Use products appropriate for your hair type and concerns.",
-  ],
-  hat: [
-    "Wearing hats is great for sun protection - keep doing it!",
-    "Make sure to clean your face after wearing hats to prevent clogged pores.",
-  ],
-  earr: [
-    "Keep earrings clean to prevent irritation and infection.",
-    "Remove earrings before applying skincare products around the ear area.",
-  ],
-  neck: [
-    "Don't forget to extend your skincare routine to your neck area.",
-    "The neck shows signs of aging early - use anti-aging products here too.",
-  ],
-}
-
-const YOLO_DETECTION_TIPS = {
-  acne: [
-    "Use gentle, non-comedogenic products to avoid further irritation.",
-    "Consider salicylic acid or benzoyl peroxide for acne treatment.",
-    "Don't pick at acne - this can lead to scarring and more breakouts.",
-    "Maintain a consistent skincare routine and be patient with results.",
-  ],
-  age_spot: [
-    "Use products with vitamin C, retinoids, or hydroquinone for age spots.",
-    "Always wear sunscreen to prevent new age spots from forming.",
-    "Consider professional treatments like chemical peels for stubborn spots.",
-    "Be patient - age spot treatments can take several months to show results.",
-  ],
-  dark_spot: [
-    "Look for products with niacinamide, kojic acid, or arbutin for dark spots.",
-    "Consistent use of retinoids can help fade dark spots over time.",
-    "Always use sunscreen to prevent dark spots from getting darker.",
-    "Consider vitamin C serum in your morning routine for brightening.",
-  ],
-  wrinkle: [
-    "Incorporate retinoids into your nighttime routine to reduce wrinkles.",
-    "Use a good moisturizer to plump the skin and minimize fine lines.",
-    "Consider products with peptides and hyaluronic acid for anti-aging.",
-    "Don't forget sunscreen - it's the best anti-aging product you can use.",
-  ],
-  blackhead: [
-    "Use salicylic acid products to help dissolve blackheads.",
-    "Consider using pore strips occasionally, but don't overuse them.",
-    "Oil cleansing can help dissolve the oil in blackheads.",
-    "Regular gentle exfoliation can prevent blackheads from forming.",
-  ],
-  redness: [
-    "Look for products with niacinamide or green tea to reduce redness.",
-    "Avoid harsh ingredients that might increase irritation.",
-    "Consider using a gentle, fragrance-free moisturizer.",
-    "If redness persists, consult a dermatologist as it might be rosacea.",
-  ],
-  eye_bag: [
-    "Use an eye cream with caffeine to help reduce puffiness.",
-    "Get adequate sleep and stay hydrated to minimize eye bags.",
-    "Consider using a cold compress in the morning to reduce swelling.",
-    "Elevate your head while sleeping to prevent fluid accumulation.",
-  ],
-}
-
-// Main function to generate tips based on analysis results
+// Main function to generate tips based on analysis results and current language
 function generateTips(analysisData) {
+  const currentLanguage = localStorage.getItem("preferredLanguage") || "en"
   const tips = []
 
   // Add skin type tips
-  if (analysisData.skin_type && SKIN_TYPE_TIPS[analysisData.skin_type]) {
-    tips.push(...SKIN_TYPE_TIPS[analysisData.skin_type].slice(0, 2))
+  if (
+    analysisData.skin_type &&
+    SKIN_TYPE_TIPS[currentLanguage] &&
+    SKIN_TYPE_TIPS[currentLanguage][analysisData.skin_type]
+  ) {
+    tips.push(...SKIN_TYPE_TIPS[currentLanguage][analysisData.skin_type].slice(0, 2))
   }
 
   // Add eye color tips
-  if (analysisData.left_eye_color && EYE_COLOR_TIPS[analysisData.left_eye_color]) {
-    tips.push(...EYE_COLOR_TIPS[analysisData.left_eye_color].slice(0, 1))
+  if (
+    analysisData.left_eye_color &&
+    EYE_COLOR_TIPS[currentLanguage] &&
+    EYE_COLOR_TIPS[currentLanguage][analysisData.left_eye_color]
+  ) {
+    tips.push(...EYE_COLOR_TIPS[currentLanguage][analysisData.left_eye_color].slice(0, 1))
   }
   if (
     analysisData.right_eye_color &&
-    EYE_COLOR_TIPS[analysisData.right_eye_color] &&
+    EYE_COLOR_TIPS[currentLanguage] &&
+    EYE_COLOR_TIPS[currentLanguage][analysisData.right_eye_color] &&
     analysisData.right_eye_color !== analysisData.left_eye_color
   ) {
-    tips.push(...EYE_COLOR_TIPS[analysisData.right_eye_color].slice(0, 1))
+    tips.push(...EYE_COLOR_TIPS[currentLanguage][analysisData.right_eye_color].slice(0, 1))
   }
 
   // Add acne severity tips
   if (analysisData.acne_pred !== undefined) {
     const acneLevel = Number.parseInt(analysisData.acne_pred) || 0
-    if (ACNE_SEVERITY_TIPS[acneLevel]) {
-      tips.push(...ACNE_SEVERITY_TIPS[acneLevel].slice(0, 2))
+    if (ACNE_SEVERITY_TIPS[currentLanguage] && ACNE_SEVERITY_TIPS[currentLanguage][acneLevel]) {
+      tips.push(...ACNE_SEVERITY_TIPS[currentLanguage][acneLevel].slice(0, 2))
     }
-  }
-
-  // Add segmentation tips
-  if (analysisData.segmentation_results && Array.isArray(analysisData.segmentation_results)) {
-    const segmentationTips = []
-    analysisData.segmentation_results.forEach((result) => {
-      let segmentClass = ""
-      if (typeof result === "string") {
-        segmentClass = result
-      } else if (result && typeof result === "object") {
-        segmentClass = result.class || result.label || result.name || ""
-      }
-
-      if (segmentClass && SEGMENTATION_TIPS[segmentClass]) {
-        segmentationTips.push(...SEGMENTATION_TIPS[segmentClass])
-      }
-    })
-
-    // Add unique segmentation tips (limit to 2)
-    const uniqueSegmentationTips = [...new Set(segmentationTips)]
-    tips.push(...uniqueSegmentationTips.slice(0, 2))
-  }
-
-  // Add YOLO detection tips
-  if (analysisData.yolo_boxes && Array.isArray(analysisData.yolo_boxes)) {
-    const yoloTips = []
-    analysisData.yolo_boxes.forEach((box) => {
-      const detectionClass = box.label || box.class || ""
-      if (detectionClass && YOLO_DETECTION_TIPS[detectionClass]) {
-        yoloTips.push(...YOLO_DETECTION_TIPS[detectionClass])
-      }
-    })
-
-    // Add unique YOLO tips (limit to 3)
-    const uniqueYoloTips = [...new Set(yoloTips)]
-    tips.push(...uniqueYoloTips.slice(0, 3))
   }
 
   // Remove duplicates and limit total tips
