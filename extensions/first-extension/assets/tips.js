@@ -304,7 +304,46 @@ function generateTips(analysisData) {
   return uniqueTips.slice(0, 8) // Limit to 8 tips maximum
 }
 
+// Function to regenerate tips when language changes
+function regenerateTipsForLanguage(analysisData, newLanguage) {
+  const tips = []
+
+  // Add skin type tips
+  if (analysisData.skin_type && SKIN_TYPE_TIPS[newLanguage] && SKIN_TYPE_TIPS[newLanguage][analysisData.skin_type]) {
+    tips.push(...SKIN_TYPE_TIPS[newLanguage][analysisData.skin_type].slice(0, 2))
+  }
+
+  // Add eye color tips
+  if (
+    analysisData.left_eye_color &&
+    EYE_COLOR_TIPS[newLanguage] &&
+    EYE_COLOR_TIPS[newLanguage][analysisData.left_eye_color]
+  ) {
+    tips.push(...EYE_COLOR_TIPS[newLanguage][analysisData.left_eye_color].slice(0, 1))
+  }
+  if (
+    analysisData.right_eye_color &&
+    EYE_COLOR_TIPS[newLanguage] &&
+    EYE_COLOR_TIPS[newLanguage][analysisData.right_eye_color] &&
+    analysisData.right_eye_color !== analysisData.left_eye_color
+  ) {
+    tips.push(...EYE_COLOR_TIPS[newLanguage][analysisData.right_eye_color].slice(0, 1))
+  }
+
+  // Add acne severity tips
+  if (analysisData.acne_pred !== undefined) {
+    const acneLevel = Number.parseInt(analysisData.acne_pred) || 0
+    if (ACNE_SEVERITY_TIPS[newLanguage] && ACNE_SEVERITY_TIPS[newLanguage][acneLevel]) {
+      tips.push(...ACNE_SEVERITY_TIPS[newLanguage][acneLevel].slice(0, 2))
+    }
+  }
+
+  // Remove duplicates and limit total tips
+  const uniqueTips = [...new Set(tips)]
+  return uniqueTips.slice(0, 8) // Limit to 8 tips maximum
+}
+
 // Export for use in other files (if using modules)
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { generateTips }
+  module.exports = { generateTips, regenerateTipsForLanguage }
 }

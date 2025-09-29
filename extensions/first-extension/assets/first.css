@@ -17,13 +17,21 @@
   border: 2px solid #c9cccf;
   border-radius: 8px;
   overflow: hidden;
-  width: fit-content;
+  /* More precise fixed width to prevent jumping */
+  width: 96px;
+  min-width: 96px;
+  max-width: 96px;
   flex-shrink: 0;
+  position: relative;
+  box-sizing: border-box;
+  direction: ltr; 
 }
 
 .lang-selector-btn {
+  /* Exact fixed dimensions to prevent any layout shifts */
   flex: 1;
-  padding: 8px 12px;
+  flex-basis: 32px;
+  padding: 6px 4px;
   cursor: pointer;
   text-align: center;
   font-weight: bold;
@@ -31,16 +39,30 @@
   background: #fff;
   transition: background 0.3s, color 0.3s;
   font-size: 12px;
+  /* Exact fixed dimensions to prevent any jumping */
+  width: 32px;
   min-width: 32px;
+  max-width: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* Prevent any text wrapping or size changes */
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  direction: ltr; 
 }
 
 .lang-selector-btn:not(:last-child) {
   border-right: 1px solid #c9cccf;
+  direction: ltr; 
 }
 
 .lang-selector-btn.active {
   background: #202223;
   color: #fff;
+  direction: ltr; 
 }
 
 .lang-selector-btn:hover:not(.active) {
@@ -52,10 +74,7 @@
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .lang-selector-btn:not(:last-child) {
-  border-right: none;
-  border-left: 1px solid #c9cccf;
-}
+
 
 [dir="rtl"] .eye-colors {
   flex-direction: row-reverse;
@@ -78,15 +97,15 @@
 
   .lang-selector {
     align-self: flex-end;
+    /* Maintain fixed width on mobile */
+    width: 96px;
   }
 
   [dir="rtl"] .header-content {
     flex-direction: column;
   }
 
-  [dir="rtl"] .lang-selector {
-    align-self: flex-start;
-  }
+  
 }
 
 /* General container and card styling */
@@ -1296,7 +1315,7 @@
 .capture-button:focus,
 .stop-camera-button:focus,
 .lang-selector-btn:focus {
-  outline: 2px solid #2563eb;
+  
   outline-offset: 2px;
 }
 

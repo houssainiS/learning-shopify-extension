@@ -504,52 +504,64 @@
     }
   };
 
-  let currentLanguage = 'en';
+let currentLanguage = 'en';
+let lastAnalysisData = null;
 
-  function translatePage(language) {
-    currentLanguage = language;
-    const elements = document.querySelectorAll('[data-translate]');
-    
-    elements.forEach(element => {
-      const key = element.getAttribute('data-translate');
-      if (translations[language] && translations[language][key]) {
-        element.textContent = translations[language][key];
-      }
-    });
+function translatePage(language) {
+  currentLanguage = language;
 
-    // Update document direction for Arabic
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-    
-    // Store language preference
-    localStorage.setItem('preferredLanguage', language);
+  // Translate all elements with [data-translate]
+  const elements = document.querySelectorAll('[data-translate]');
+  elements.forEach(element => {
+    const key = element.getAttribute('data-translate');
+    if (translations[language] && translations[language][key]) {
+      element.textContent = translations[language][key];
+    }
+  });
+
+  // Update document direction + lang attribute
+  document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = language;
+
+  // Save preference
+  localStorage.setItem('preferredLanguage', language);
+
+  // Regenerate tips if analysis data exists
+  if (lastAnalysisData && typeof regenerateTipsForLanguage === 'function') {
+    const newTips = regenerateTipsForLanguage(lastAnalysisData, language);
+    if (typeof displayTips === 'function') {
+      displayTips(newTips);
+    }
   }
+}
 
-  // Initialize language on page load
-  document.addEventListener('DOMContentLoaded', function () {
-    // Check for stored language preference, default to English
-    const storedLanguage = localStorage.getItem('preferredLanguage') || 'en';
-    
-    // Update active language button
-    document.querySelectorAll('.lang-selector-btn').forEach(btn => {
-      btn.classList.remove('active');
-      if (btn.dataset.lang === storedLanguage) {
-        btn.classList.add('active');
-      }
-    });
-    
-    // Translate page to stored/default language
-    translatePage(storedLanguage);
+// Initialize language on page load
+document.addEventListener('DOMContentLoaded', function () {
+  // Get saved language or default to English
+  const storedLanguage = localStorage.getItem('preferredLanguage') || 'en';
 
-    // Language selector functionality
-    const langBtns = document.querySelectorAll('.lang-selector-btn');
-    langBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        langBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        translatePage(btn.dataset.lang);
-      });
+  // Mark the active button
+  document.querySelectorAll('.lang-selector-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.lang === storedLanguage) {
+      btn.classList.add('active');
+    }
+  });
+
+  // Translate page
+  translatePage(storedLanguage);
+
+  // Language selector button logic
+  const langBtns = document.querySelectorAll('.lang-selector-btn');
+  langBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      langBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      translatePage(btn.dataset.lang);
     });
+  });
+});
+
 
     const input = document.getElementById('picture');
     const preview = document.getElementById('preview-image');
@@ -710,6 +722,8 @@
     });
 
     function displayResults(data) {
+      lastAnalysisData = data;
+      
       const issuesContainer = document.getElementById('detected-issues');
       issuesContainer.innerHTML = '';
       
@@ -954,7 +968,6 @@
         tipsSection.style.display = 'none';
       }
     }
-  });
 </script>
 
 {% schema %}
