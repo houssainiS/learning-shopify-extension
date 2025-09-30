@@ -24,7 +24,7 @@
   flex-shrink: 0;
   position: relative;
   box-sizing: border-box;
-  direction: ltr; 
+  direction: ltr;
 }
 
 .lang-selector-btn {
@@ -51,40 +51,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  direction: ltr; 
+  direction: ltr;
 }
 
 .lang-selector-btn:not(:last-child) {
   border-right: 1px solid #c9cccf;
-  direction: ltr; 
+  direction: ltr;
 }
 
 .lang-selector-btn.active {
   background: #202223;
   color: #fff;
-  direction: ltr; 
+  direction: ltr;
 }
 
 .lang-selector-btn:hover:not(.active) {
   background: #f0f0f0;
 }
 
-/* RTL support for Arabic */
-[dir="rtl"] .header-content {
+/* Scoped RTL support to only affect .my-app-container */
+.my-app-container[dir="rtl"] .header-content {
   flex-direction: row-reverse;
 }
 
-
-
-[dir="rtl"] .eye-colors {
+.my-app-container[dir="rtl"] .eye-colors {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .recommendations-filters {
+.my-app-container[dir="rtl"] .recommendations-filters {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .active-filters {
+.my-app-container[dir="rtl"] .active-filters {
   flex-direction: row-reverse;
 }
 
@@ -101,20 +99,31 @@
     width: 96px;
   }
 
-  [dir="rtl"] .header-content {
+  /* Scoped RTL mobile adjustments */
+  .my-app-container[dir="rtl"] .header-content {
     flex-direction: column;
   }
 
-  
+  .my-app-container[dir="ltr"] .lang-selector {
+    align-self: flex-start;
+    /* Maintain fixed width on mobile for RTL */
+    width: 96px;
+  }
 }
 
 /* General container and card styling */
+/* Added overflow-x: hidden to prevent mobile blank screen bug */
 .face-analysis-container {
   display: flex;
   justify-content: center;
   padding: 1rem;
   background-color: white;
   min-height: 100vh;
+}
+
+.my-app-container {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 @media (min-width: 640px) {
@@ -1315,7 +1324,6 @@
 .capture-button:focus,
 .stop-camera-button:focus,
 .lang-selector-btn:focus {
-  
   outline-offset: 2px;
 }
 
